@@ -1,3 +1,12 @@
+const checkStatus = (response) => {
+  if (response.ok) {
+    return response;
+  }
+  throw new Error('Request was either a 404 or 500');
+}
+
+const json = (response) => response.json()
+
 const Movie = (props) => {
   const { Title, Year, imdbID, Type, Poster } = props.movie;  // ES6 destructuring
 
@@ -42,22 +51,20 @@ class MovieFinder extends React.Component {
       return;  
     }
   
-    fetch(`https://www.omdbapi.com/?s=${searchTerm}&apikey=235cb9e7`).then((response) => {
-      if (response.ok) {
-        return response.json();
-      }
-      throw new Error('Request was either a 404 or 500');
-    }).then((data) => {
-      if (data.Response === 'False') {
-        throw new Error(data.Error);
-      }
-      if (data.Response === 'True' && data.Search) {
-        this.setState({ results: data.Search, error: '' });
-      }
-    }).catch((error) => {
-      this.setState({ error: error.message });
-      console.log(error);
-    })
+    fetch(`https://www.omdbapi.com/?s=${searchTerm}&apikey=235cb9e7`)
+      .then(checkStatus)
+      .then(json)
+      .then(data => {
+        if (data.Response === 'False') {
+          throw new Error(data.Error);
+        }
+        if (data.Response === 'True' && data.Search) {
+          this.setState({ results: data.Search, error: '' });
+        }
+      }).catch((error) => {
+        this.setState({ error: error.message });
+        console.log(error);
+      })
   }
   
   render() {
